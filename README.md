@@ -930,38 +930,6 @@ models/trajectory_predictor.keras
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Here's how you can help:
-
-### Priority Areas
-- 🔬 **Data Collection** - Expand real flight dataset to 100K+ samples
-- 🤖 **Model Improvements** - Experiment with Transformers, GNN, or ensemble methods
-- 🎨 **Frontend Enhancement** - Improve visualizations, add heatmaps, trajectory animations
-- 🔄 **Real-time Features** - WebSocket integration for live flight updates
-- 📱 **Mobile Support** - Responsive design improvements or native mobile app
-- 🧪 **Testing Suite** - Unit tests, integration tests, end-to-end tests
-- 📚 **Documentation** - Tutorials, deployment guides, API client libraries
-- 🌍 **Internationalization** - Multi-language support
-- 🔒 **Security** - OAuth integration, rate limiting, RBAC enhancements
-
-### Development Workflow
-1. **Fork** the repository
-2. **Create branch**: `git checkout -b feature/your-feature`
-3. **Make changes**: Follow existing code style (PEP 8 for Python)
-4. **Test locally**: Ensure training and API work
-5. **Commit**: `git commit -m 'Add: brief description'`
-6. **Push**: `git push origin feature/your-feature`
-7. **Pull Request**: Open PR with detailed description
-
-### Code Style
-- **Python**: PEP 8, type hints where applicable
-- **JavaScript**: ES6+, consistent formatting
-- **Comments**: Explain "why", not "what"
-- **Documentation**: Update README and DOCUMENTATION.md for significant changes
-
----
-
 ## 📝 License & Legal
 
 This project is for **educational, research, and demonstration purposes**.
