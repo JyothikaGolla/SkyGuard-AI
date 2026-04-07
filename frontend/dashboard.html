@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - SkyGuard AI</title>
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            padding-top: 57px;
+        }
+        .dashboard-container {
+            width: 100%;
+            padding: 32px 48px;
+            min-height: calc(100vh - 60px);
+        }
+        .dashboard-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .dashboard-header h1 {
+            font-size: 2rem;
+            margin: 0 0 8px 0;
+        }
+        .dashboard-header h1 .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+        .card h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.3rem;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        .data-table thead {
+            background: rgba(59, 130, 246, 0.1);
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+        }
+        .data-table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #60a5fa;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+        .data-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        .data-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.08) !important;
+        }
+        .watchlist-item, .alert-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 18px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .watchlist-item:hover, .alert-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateX(4px);
+        }
+        .watchlist-info, .alert-info {
+            flex: 1;
+        }
+        .watchlist-name, .alert-title {
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+        .watchlist-desc, .alert-message {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .watchlist-actions, .alert-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-icon:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: scale(1.1);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 8px;
+        }
+        .badge-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-inactive {
+            background: rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+        .badge-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .badge-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .badge-low {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-unread {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #64748b;
+            font-style: italic;
+        }
+        .error-message {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: none;
+            max-width: 400px;
+            z-index: 9999;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease-out;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9998;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.2);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 36px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            font-weight: 500;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(241, 245, 249, 0.5);
+        }
+        .form-group small {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+        .section-full {
+            width: 100%;
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Header -->
+    <div id="user-info" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 12px 24px;
+        gap: 12px;
+        z-index: 1000;
+    ">
+        <div id="user-menu-container" style="position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-right: 12px; border-right: 1px solid rgba(148, 163, 184, 0.3); cursor: pointer; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.1)'" onmouseout="this.style.background='transparent'" onclick="toggleUserMenu()">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); display: flex; align-items: center; justify-content: center; font-size: 16px;">👤</div>
+            <span id="user-name" style="color: #e2e8f0; font-size: 14px; font-weight: 500;"></span>
+            <span style="color: #94a3b8; font-size: 12px; margin-left: 4px;">▼</span>
+            <!-- Dropdown Menu -->
+            <div id="user-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; min-width: 200px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 10000; overflow: hidden;">
+                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.1);">
+                    <div style="color: #e2e8f0; font-weight: 600; font-size: 14px;" id="dropdown-username"></div>
+                    <div style="color: #64748b; font-size: 12px; margin-top: 2px;" id="dropdown-email"></div>
+                </div>
+                <a href="settings.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #e2e8f0; text-decoration: none; transition: background 0.2s; font-size: 14px;" onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 16px;">⚙️</span>
+                    <span>Settings</span>
+                </a>
+                <div onclick="logout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #fca5a5; cursor: pointer; transition: background 0.2s; font-size: 14px; border-top: 1px solid rgba(148, 163, 184, 0.1);" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 16px;">🚪</span>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+        <button id="flight-tracker-btn" class="btn-secondary" style="padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 8px;">🛫 Flight Tracker</button>
+        <button id="admin-btn" class="btn-secondary" style="padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 8px;">⚙️ Admin</button>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div style="text-align: center;">
+                <h1>📊 <span class="gradient-text">User Dashboard</span></h1>
+                <p style="margin: 0; color: #94a3b8; font-size: 1.1rem;">Manage your watchlists, alerts, and preferences</p>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>📊 Statistics</h2>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-watchlists">0</div>
+                        <div class="stat-label">Watchlists</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-alerts">0</div>
+                        <div class="stat-label">Unread Alerts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-queries">0</div>
+                        <div class="stat-label">Analytics Queries</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-active">0</div>
+                        <div class="stat-label">Active Watches</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Preferences</h2>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="pref-email-alerts">
+                    <label for="pref-email-alerts" style="margin: 0;">Email Alerts</label>
+                </div>
+                <div style="font-size: 0.8rem; color: #94a3b8; margin: -12px 0 16px 28px;">
+                    ⚠️ Hourly and Daily email notifications are not currently configured
+                </div>
+                <div class="form-group">
+                    <label>Risk Threshold</label>
+                    <select id="pref-risk-threshold">
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="HIGH">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Alert Frequency</label>
+                    <select id="pref-alert-frequency">
+                        <option value="immediate">Immediate</option>
+                        <option value="hourly">Hourly</option>
+                        <option value="daily">Daily</option>
+                    </select>
+                </div>
+                
+                <button onclick="savePreferences()" style="
+                    padding: 12px;
+                    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                    border: none;
+                    border-radius: 10px;
+                    color: white;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 1rem;
+                    width: 100%;
+                    margin-top: 8px;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                    💾 Save Preferences
+                </button>
+            </div>
+        </div>
+
+        <!-- NEW: Risk Threshold Simulator -->
+        <div class="card section-full">
+            <h2>🎯 Context-Aware Risk Threshold Simulator</h2>
+            <p style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 20px;">
+                See how risk thresholds adapt dynamically based on flight conditions. These context-aware thresholds are now active in the system and provide more accurate risk assessment.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>Altitude (meters)</label>
+                    <input type="number" id="sim-altitude" value="5000" min="0" max="15000" step="100">
+                </div>
+                <div class="form-group">
+                    <label>Flight Phase</label>
+                    <select id="sim-phase">
+                        <option value="cruise">Cruise</option>
+                        <option value="climb">Climb</option>
+                        <option value="descent">Descent</option>
+                        <option value="landing">Landing</option>
+                        <option value="takeoff">Takeoff</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Weather Condition</label>
+                    <select id="sim-weather">
+                        <option value="Clear">Clear</option>
+                        <option value="Clouds">Clouds</option>
+                        <option value="Rain">Rain</option>
+                        <option value="Drizzle">Drizzle</option>
+                        <option value="Thunderstorm">Thunderstorm</option>
+                        <option value="Snow">Snow</option>
+                        <option value="Fog">Fog</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="simulateThresholds()" style="
+                padding: 12px 24px;
+                background: linear-gradient(135deg, #8b5cf6, #ec4899);
+                border: none;
+                border-radius: 10px;
+                color: white;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 1rem;
+                margin-bottom: 20px;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                🔮 Calculate Dynamic Thresholds
+            </button>
+            <div id="threshold-results" style="display: none;">
+                <div style="background: rgba(139, 92, 246, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                    <h3 style="margin: 0 0 16px 0; color: #f1f5f9; font-size: 1.1rem;">📊 Threshold Results</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+                        <div style="text-align: center; padding: 16px; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3);">
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">LOW THRESHOLD</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #22c55e;" id="result-low">--</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: rgba(245, 158, 11, 0.1); border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">MEDIUM RANGE</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #f59e0b;" id="result-medium">--</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: rgba(239, 68, 68, 0.1); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">HIGH THRESHOLD</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;" id="result-high">--</div>
+                        </div>
+                    </div>
+                    <div id="threshold-adjustments" style="font-size: 0.875rem; color: #a78bfa; text-align: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px;"></div>
+                    <div style="margin-top: 16px; padding: 12px; background: rgba(59, 130, 246, 0.05); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <div style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 4px;">💡 Comparison with Fixed Thresholds:</div>
+                        <div id="threshold-comparison" style="font-size: 0.9rem; color: #e2e8f0;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Watchlists Section -->
+        <div class="card section-full">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="margin: 0;">👁️ Watchlists</h2>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="checkWatchlistsNow()" style="
+                        padding: 10px 20px;
+                        background: rgba(245, 158, 11, 0.1);
+                        border: 1px solid rgba(245, 158, 11, 0.3);
+                        border-radius: 8px;
+                        color: #fbbf24;
+                        cursor: pointer;
+                        font-weight: 500;
+                        font-size: 0.9rem;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(245, 158, 11, 0.2)'" onmouseout="this.style.background='rgba(245, 158, 11, 0.1)'">
+                        🔍 Check Now
+                    </button>
+                    <button onclick="openCreateWatchlist()" style="
+                        padding: 10px 20px;
+                        background: rgba(59, 130, 246, 0.1);
+                        border: 1px solid rgba(59, 130, 246, 0.3);
+                        border-radius: 8px;
+                        color: #3b82f6;
+                        cursor: pointer;
+                        font-weight: 500;
+                        font-size: 0.9rem;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(59, 130, 246, 0.2)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'">
+                        ➕ Create Watchlist
+                    </button>
+                </div>
+            </div>
+            <div id="watchlists-container">
+                <div class="empty-state">No watchlists yet. Create one to start monitoring specific regions!</div>
+            </div>
+        </div>
+
+        <!-- Alerts Section -->
+        <div class="card section-full">
+            <h2>🔔 Recent Alerts</h2>
+            <div id="alerts-container">
+                <div class="empty-state">No alerts yet. Alerts will appear here when high-risk flights are detected in your watchlists.</div>
+            </div>
+        </div>
+
+        <!-- Analytics History -->
+        <div class="card section-full">
+            <h2>📈 Analytics History <span style="font-size: 0.875rem; color: #94a3b8; font-weight: 400;">(Latest 10 entries)</span></h2>
+            <div id="history-container">
+                <div class="empty-state">No analytics history yet. Run analytics from the main page to see your query history.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Watchlist Modal -->
+    <div id="watchlist-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Create Watchlist</h2>
+            <form id="watchlist-form" onsubmit="saveWatchlist(event)">
+                <input type="hidden" id="watchlist-id">
+                <div class="form-group">
+                    <label for="watchlist-name">Name *</label>
+                    <input type="text" id="watchlist-name" required maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="watchlist-description">Description</label>
+                    <textarea id="watchlist-description" maxlength="500"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="region-preset">Quick Region Selection</label>
+                    <select id="region-preset" onchange="fillBboxFromPreset()" style="margin-bottom: 12px;">
+                        <option value="">-- Select a region or enter custom --</option>
+                        <option value="6,38,68,98">India</option>
+                        <option value="25,49,-125,-66">United States</option>
+                        <option value="36,71,-10,40">Europe</option>
+                        <option value="-55,13,113,154">Australia</option>
+                        <option value="15,55,73,135">China</option>
+                        <option value="31,42,129,146">Japan</option>
+                        <option value="-34,-22,-46,-34">Brazil (São Paulo)</option>
+                        <option value="51,71,4,32">Scandinavia</option>
+                        <option value="-35,5,-18,52">Africa</option>
+                        <option value="-10,10,95,141">Southeast Asia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="watchlist-bbox">Bounding Box (minLat,maxLat,minLon,maxLon) *</label>
+                    <input type="text" id="watchlist-bbox" required 
+                           placeholder="6,38,68,98"
+                           pattern="^-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?,-?\d+(\.\d+)?$"
+                           style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(99, 102, 241, 0.4); font-family: monospace;">
+                    <small style="color: #60a5fa; font-size: 0.8rem; display: block; margin-top: 6px;">💡 Format: minLat,maxLat,minLon,maxLon | Example: 6,38,68,98</small>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="watchlist-active" checked>
+                    <label for="watchlist-active" style="margin: 0;">Active</label>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" onclick="closeWatchlistModal()" style="
+                        padding: 12px 24px;
+                        background: rgba(148, 163, 184, 0.1);
+                        border: 1px solid rgba(148, 163, 184, 0.3);
+                        border-radius: 10px;
+                        color: #94a3b8;
+                        cursor: pointer;
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(148, 163, 184, 0.2)'" onmouseout="this.style.background='rgba(148, 163, 184, 0.1)'">
+                        Cancel
+                    </button>
+                    <button type="submit" style="
+                        padding: 12px 24px;
+                        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                        border: none;
+                        border-radius: 10px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        💾 Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+    <div id="error-message" class="error-message"></div>
+
+    <!-- Footer -->
+    <footer style="margin-top: 40px; padding: 30px 20px; background: rgba(15, 23, 42, 0.8); border-top: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px;">
+        <div style="max-width: 1600px; margin: 0 auto;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 20px;">
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">About SkyGuard AI</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.6;">
+                        Advanced machine learning platform for real-time flight risk assessment and anomaly detection. 
+                        Powered by cutting-edge AI models to ensure aviation safety.
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">ML Models</h3>
+                    <ul style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>🎯 <strong>XGBoost</strong> - Risk Classification</li>
+                        <li>🧠 <strong>Isolation Forest</strong> - Anomaly Detection</li>
+                        <li>📊 <strong>K-Means</strong> - Flight Pattern Clustering</li>
+                        <li>⚡ <strong>LSTM Autoencoder</strong> - Sequence Anomaly Detection</li>
+                        <li>🛫 <strong>LSTM Predictor</strong> - Trajectory Forecasting</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">Data Sources & APIs</h3>
+                    <ul style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>✈️ OpenSky Network API - Live Flight Data</li>
+                        <li>🌤️ OpenWeather API - Weather Conditions</li>
+                        <li>🗺️ Leaflet + CARTO Maps</li>
+                        <li>📈 Chart.js - Data Visualization</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">Technology Stack</h3>
+                    <ul style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>🐍 Python + Flask (Backend)</li>
+                        <li>🔬 Scikit-learn + XGBoost + TensorFlow</li>
+                        <li>🎨 Vanilla JavaScript (Frontend)</li>
+                        <li>🗄️ SQLAlchemy + SQLite</li>
+                        <li>🔐 JWT Authentication + RBAC</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+                <p style="color: #64748b; font-size: 0.85rem;">
+                    © 2025 SkyGuard AI. Built with ❤️ for Aviation Safety | 
+                    <span style="color: #60a5fa;">Machine Learning Powered Risk Assessment</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

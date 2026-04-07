@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SkyGuard AI</title>
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <link rel="stylesheet" href="auth-styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 style="display: flex; align-items: center; justify-content: center; gap: 12px;"><img src="images/logo.png" alt="SkyGuard AI" style="width: 40px; height: 40px; object-fit: contain;"> SkyGuard AI</h1>
+                <p>Intelligent Flight Risk Assessment</p>
+            </div>
+            
+            <form id="signup-form" class="auth-form">
+                <h2>Create Account</h2>
+                
+                <!-- Step 1: User Details -->
+                <div id="step1-fields">
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required autocomplete="username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required autocomplete="email">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required autocomplete="new-password">
+                        <small class="form-hint">Must be at least 8 characters with uppercase, lowercase, and number</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+                    </div>
+                </div>
+                
+                <!-- Step 2: OTP Verification (hidden initially) -->
+                <div id="step2-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="otp_code">Verification Code</label>
+                        <input type="text" id="otp_code" name="otp_code" maxlength="6" pattern="[0-9]{6}" placeholder="Enter 6-digit code" style="font-size: 20px; letter-spacing: 5px; text-align: center; font-family: 'Courier New', monospace;">
+                        <small class="form-hint">Please enter the 6-digit code sent to your email</small>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 15px 0;">
+                        <button type="button" id="resend-otp-btn" class="btn-link" style="background: none; border: none; color: #3b82f6; cursor: pointer; text-decoration: underline; font-size: 14px;">
+                            Resend Code
+                        </button>
+                        <button type="button" id="change-email-btn" class="btn-link" style="background: none; border: none; color: #64748b; cursor: pointer; text-decoration: underline; font-size: 14px; margin-left: 15px;">
+                            Change Email
+                        </button>
+                    </div>
+                    
+                    <div id="otp-timer" style="text-align: center; color: #94a3b8; font-size: 14px; margin: 10px 0;">
+                        Code expires in: <span id="timer-display">10:00</span>
+                    </div>
+                </div>
+                
+                <div id="error-message" class="error-message"></div>
+                
+                <button type="submit" class="btn-primary" id="signup-btn">
+                    <span class="btn-text" id="btn-text-step1">Send Verification Code</span>
+                    <span class="btn-text" id="btn-text-step2" style="display: none;">Verify & Sign Up</span>
+                    <span class="btn-loader" style="display: none;">
+                        <span class="spinner"></span> <span id="loader-text">Processing...</span>
+                    </span>
+                </button>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="login.html">Login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="auth.js"></script>
+</body>
+</html>

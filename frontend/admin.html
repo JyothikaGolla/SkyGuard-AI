@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SkyGuard AI</title>
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            padding-top: 57px;
+        }
+        .admin-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+        .card h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.5rem;
+            color: #f1f5f9;
+        }
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .search-bar input, .search-bar select {
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .search-bar input:hover, .search-bar select:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .search-bar input:focus, .search-bar select:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .search-bar input {
+            flex: 1;
+            min-width: 200px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        th {
+            padding: 12px;
+            text-align: left;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        td {
+            padding: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+        }
+        tbody tr:hover {
+            background: rgba(59, 130, 246, 0.08);
+            cursor: pointer;
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        .badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .badge-admin {
+            background: rgba(168, 85, 247, 0.2);
+            color: #a855f7;
+        }
+        .badge-user {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+        .badge-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .btn-icon:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.2);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        .btn-icon:active {
+            transform: scale(0.95);
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        .pagination button {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pagination button:hover:not(:disabled) {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .pagination button.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tab:hover {
+            color: #f1f5f9;
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-2px);
+        }
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        .tab.active:hover {
+            background: rgba(59, 130, 246, 0.08);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* Header button hover effects */
+        #user-info button {
+            transition: all 0.3s ease;
+        }
+        #user-info button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        #logout-btn:hover {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+        }
+        .error-message {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10000;
+            padding: 16px 24px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 12px;
+            color: #ef4444;
+            font-weight: 500;
+            display: none;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Header Bar -->
+    <div id="user-info" style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; display: none; align-items: center; justify-content: flex-end; gap: 12px; background: rgba(15, 23, 42, 0.95); padding: 12px 24px; border-bottom: 1px solid rgba(99, 102, 241, 0.3); backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+        <div id="user-menu-container" style="position: relative; display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-right: 12px; border-right: 1px solid rgba(148, 163, 184, 0.3); cursor: pointer; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(99, 102, 241, 0.1)'" onmouseout="this.style.background='transparent'" onclick="toggleUserMenu()">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); display: flex; align-items: center; justify-content: center; font-size: 16px;">👤</div>
+            <span id="user-name" style="color: #e2e8f0; font-size: 14px; font-weight: 500;"></span>
+            <span style="color: #94a3b8; font-size: 12px; margin-left: 4px;">▼</span>
+            <!-- Dropdown Menu -->
+            <div id="user-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 8px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; min-width: 200px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); z-index: 10000; overflow: hidden;">
+                <div style="padding: 12px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.1);">
+                    <div style="color: #e2e8f0; font-weight: 600; font-size: 14px;" id="dropdown-username"></div>
+                    <div style="color: #64748b; font-size: 12px; margin-top: 2px;" id="dropdown-email"></div>
+                </div>
+                <a href="settings.html" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #e2e8f0; text-decoration: none; transition: background 0.2s; font-size: 14px;" onmouseover="this.style.background='rgba(99, 102, 241, 0.15)'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 16px;">⚙️</span>
+                    <span>Settings</span>
+                </a>
+                <div onclick="logout()" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; color: #fca5a5; cursor: pointer; transition: background 0.2s; font-size: 14px; border-top: 1px solid rgba(148, 163, 184, 0.1);" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 16px;">🚪</span>
+                    <span>Logout</span>
+                </div>
+            </div>
+        </div>
+        <button id="flight-tracker-btn" class="btn-secondary" style="padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 8px;">🛫 Flight Tracker</button>
+        <button id="dashboard-btn" class="btn-secondary" style="padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 8px;">📊 Dashboard</button>
+    </div>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <div style="text-align: center;">
+                <h1 style="margin: 0 0 8px 0;">⚙️ Admin Panel</h1>
+                <p style="margin: 0; color: #94a3b8;">System management and monitoring</p>
+            </div>
+        </div>
+
+        <!-- System Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total-users">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-active-users">0</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-new-users">0</div>
+                <div class="stat-label">New This Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total-alerts">0</div>
+                <div class="stat-label">Total Alerts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total-watchlists">0</div>
+                <div class="stat-label">Watchlists</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-activity-24h">0</div>
+                <div class="stat-label">Actions (24h)</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('users')">👥 Users</button>
+            <button class="tab" onclick="switchTab('metrics')">📊 System Metrics</button>
+            <button class="tab" onclick="switchTab('audit')">📝 Audit Logs</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="tab-content active">
+            <div class="card">
+                <h2>User Management</h2>
+                <div class="search-bar">
+                    <input type="text" id="user-search" placeholder="Search by name, email, username..." onkeyup="searchUsers()">
+                    <select id="role-filter" onchange="filterUsers()">
+                        <option value="">All Roles</option>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <select id="active-filter" onchange="filterUsers()">
+                        <option value="">All Status</option>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                    <button onclick="exportUsers()" style="
+                        padding: 10px 20px;
+                        background: linear-gradient(135deg, #10b981, #059669);
+                        border: none;
+                        border-radius: 8px;
+                        color: white;
+                        cursor: pointer;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        transition: all 0.3s ease;
+                        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(16, 185, 129, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(16, 185, 129, 0.3)'">
+                        📥 Export CSV
+                    </button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Loading users...</td></tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="users-pagination"></div>
+            </div>
+        </div>
+
+        <!-- Metrics Tab -->
+        <div id="metrics-tab" class="tab-content">
+            <div class="card">
+                <h2>System Metrics</h2>
+                <div class="chart-container">
+                    <canvas id="metrics-chart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>API Endpoints Performance</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Requests</th>
+                            <th>Errors</th>
+                            <th>Avg Response (ms)</th>
+                            <th>Error Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-table">
+                        <tr><td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">Loading metrics...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Audit Logs Tab -->
+        <div id="audit-tab" class="tab-content">
+            <div class="card">
+                <h2>Audit Logs <span style="font-size: 0.875rem; color: #94a3b8; font-weight: 400;">(Latest 100 entries)</span></h2>
+                <div class="search-bar">
+                    <select id="action-filter" onchange="filterAuditLogs()">
+                        <option value="">All Actions</option>
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                        <option value="PUT">PUT</option>
+                        <option value="DELETE">DELETE</option>
+                    </select>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Resource</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="audit-table">
+                        <tr><td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">Loading audit logs...</td></tr>
+                    </tbody>
+                </table>
+                <div class="pagination" id="audit-pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+    <div id="error-message" class="error-message"></div>
+
+    <!-- Footer -->
+    <footer style="margin-top: 40px; padding: 30px 20px; background: rgba(15, 23, 42, 0.8); border-top: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px;">
+        <div style="max-width: 1600px; margin: 0 auto;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 20px;">
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">About SkyGuard AI</h3>
+                    <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.6;">
+                        Advanced machine learning platform for real-time flight risk assessment and anomaly detection. 
+                        Powered by cutting-edge AI models to ensure aviation safety.
+                    </p>
+                </div>
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">ML Models</h3>
+                    <ul style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>🎯 <strong>XGBoost</strong> - Risk Classification</li>
+                        <li>🧠 <strong>Isolation Forest</strong> - Anomaly Detection</li>
+                        <li>📊 <strong>K-Means</strong> - Flight Pattern Clustering</li>
+                        <li>⚡ <strong>LSTM Autoencoder</strong> - Sequence Anomaly Detection</li>
+                        <li>🛫 <strong>LSTM Predictor</strong> - Trajectory Forecasting</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">Data Sources & APIs</h3>
+                    <ul style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>✈️ OpenSky Network API - Live Flight Data</li>
+                        <li>🌤️ OpenWeather API - Weather Conditions</li>
+                        <li>🗺️ Leaflet + CARTO Maps</li>
+                        <li>📈 Chart.js - Data Visualization</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: #60a5fa; margin-bottom: 12px; font-size: 1.1rem;">Technology Stack</h3>
+                    <ul style="color: #94a3b8; font-size: 0.85rem; line-height: 1.8; list-style: none; padding: 0;">
+                        <li>🐍 Python + Flask (Backend)</li>
+                        <li>🔬 Scikit-learn + XGBoost + TensorFlow</li>
+                        <li>🎨 Vanilla JavaScript (Frontend)</li>
+                        <li>🗄️ SQLAlchemy + SQLite</li>
+                        <li>🔐 JWT Authentication + RBAC</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="text-align: center; padding-top: 20px; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+                <p style="color: #64748b; font-size: 0.85rem;">
+                    © 2025 SkyGuard AI. Built with ❤️ for Aviation Safety | 
+                    <span style="color: #60a5fa;">Machine Learning Powered Risk Assessment</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="admin.js"></script>
+</body>
+</html>
