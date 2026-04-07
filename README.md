@@ -11,8 +11,6 @@
 [![Flask](https://img.shields.io/badge/Flask-3.x-green.svg)](https://flask.palletsprojects.com/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.x-red.svg)](https://xgboost.readthedocs.io/)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [ML Architecture](#-machine-learning-architecture) • [API Reference](#-api-endpoints) • [Installation](#-installation)
-
 </div>
 
 ---
@@ -116,53 +114,6 @@ SkyGuard AI is a production-ready flight risk monitoring platform that combines 
 
 ---
 
-## 🚀 Quick Start
-
-Get up and running in 10 minutes!
-
-```bash
-# 1. Clone and setup virtual environment
-git clone <repository-url>
-cd flight-risk-ai
-python -m venv venv
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Get API keys (required)
-# - OpenWeatherMap: https://openweathermap.org/appid (free tier: 1M calls/month)
-# - Create config.py from config.example.py and add your API key
-
-# 4. Initialize database and create admin account
-python setup.py
-
- # 5. Train ML models with real data (uses existing 33,568 records, takes ~5-10 minutes)
-python train_models.py --use-real-data
-
-# 6. Start Flask backend (Terminal 1)
-python src/serving/api.py
-# Backend runs on http://localhost:5000
-
-# 7. Start frontend server (Terminal 2)
-cd frontend
-python -m http.server 5500
-# Frontend runs on http://localhost:5500
-```
-
-🌐 **Visit http://127.0.0.1:5500/login.html** and login with your admin credentials!
-
-### First Time Usage
-
-1. **Login** with admin account (created during setup)
-2. **Fetch flights** - Click "🔄 Fetch Flights" to get live data from OpenSky Network
-3. **View analytics** - Click "📊 View Analytics" to see risk distribution and charts
-4. **Create watchlist** - Go to Dashboard → Create watchlist for automated monitoring
-5. **Enable alerts** - Go to Settings → Enable email alerts for high-risk flights
-
----
-
 ## 🛠️ Tech Stack
 
 ### Backend
@@ -206,7 +157,7 @@ python -m http.server 5500
 
 #### 1️⃣ Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/JyothikaGolla/SkyGuard-AI.git
 cd flight-risk-ai
 ```
 
