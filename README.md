@@ -39,7 +39,7 @@ SkyGuard AI is a production-ready flight risk monitoring platform that combines 
 - 📊 **Interactive Dashboards** - Leaflet.js maps + Chart.js visualizations with risk color-coding
 - 🔔 **Automated Email Alerts** - Gmail SMTP integration for high-risk flight notifications
 - 👥 **Multi-User Platform** - User/admin roles, watchlists, preferences, audit logs, system metrics
-- 🎯 **38 Engineered Features** - Flight dynamics, weather conditions, temporal patterns (XGBoost uses 21 features)
+- 🎯 **Engineered Features** - Flight dynamics, weather conditions, temporal patterns (XGBoost uses 21 features)
 - 📈 **Class Weight Balancing** - Handles imbalanced data (66.9% Low, 25.5% Medium, 7.6% High risk)
 - 🔮 **Future Risk Forecasting** - LSTM trajectory chain feeds XGBoost for proactive risk scoring
 - ⚖️ **Dynamic Risk Thresholds** - Flight-phase, altitude-zone, and weather-context adaptive thresholds
@@ -49,84 +49,7 @@ SkyGuard AI is a production-ready flight risk monitoring platform that combines 
 
 ## 🏗️ System Architecture
 
-```mermaid
-flowchart TD
-  subgraph FE["🌐 Frontend — port 5500"]
-    direction LR
-    A1["Flight Tracker\napp.js · Leaflet.js · Chart.js"]
-    A2["Auth Pages\nlogin · signup"]
-    A3["User Dashboard\ndashboard.js"]
-    A4["Settings · Admin Panel"]
-  end
-
-  subgraph API["⚙️ Flask REST API — port 5000"]
-    B1["/api/auth/*\nJWT · OTP · Register · Login"]
-    B2["/api/user/*\nWatchlists · Prefs · Alerts"]
-    B3["/api/admin/*\nUsers · Metrics · Audit Logs"]
-    B4["/api/flights/*\nRisk · Analytics · SHAP · Future Risk · Thresholds"]
-    B5["JWT Auth Middleware\n+ Audit Logger + System Metrics"]
-  end
-
-  subgraph ML["🤖 ML System — src/models/"]
-    C1["XGBoost Risk Predictor\n95.19% accuracy · 21 features"]
-    C2["Random Forest Baseline\n94.17% accuracy"]
-    C3["LSTM Autoencoder\nAnomaly Detection"]
-    C4["Isolation Forest\nOutlier Detection"]
-    C5["K-Means + PCA\nk=5 flight pattern groups"]
-    C6["Trajectory Predictor\nLSTM Position Forecaster"]
-    C7["Future Risk Predictor\nTrajectory to Risk Chain"]
-    C8["SHAP Explainer\nPer-flight Feature Attribution"]
-  end
-
-  subgraph FEG["🔧 Feature Engineering — src/features/ · src/config/"]
-    D1["38-Feature Pipeline\nFlight Dynamics · Weather · Temporal · Advanced"]
-    D2["Dynamic Risk Thresholds\nPhase-adjusted · Altitude-zone · Weather-context"]
-  end
-
-  subgraph EXT["📡 External Data Sources — src/data/"]
-    E1["OpenSky Network\nLive ADS-B Flight API"]
-    E2["OpenWeatherMap API\nGrid Cache · 50km cells · 15-min TTL"]
-  end
-
-  subgraph DB["🗄️ SQLite Database — flight_risk_ai.db"]
-    F1[("users · preferences\nemail_otps")]
-    F2[("watchlists · alerts\nanalytics_history")]
-    F3[("audit_logs · system_metrics")]
-  end
-
-  subgraph SVC["🔔 Background Services"]
-    G1["Alert Service\nScheduled Region Scans"]
-    G2["Watchlist Monitor\nFlight-level Matching"]
-    G3["Email Service\nGmail SMTP Delivery"]
-  end
-
-  subgraph TRAIN["🏋️ Offline Training Pipeline"]
-    H1["real_flight_data/\n33,568 records · 59 CSVs"]
-    H2["train_models.py\n--use-real-data · --run-ablation"]
-    H3["Ablation Study\nFeature · Domain · Data-size · Component"]
-    H4["training_results/ · models/\n.pkl · .keras · .h5 weights"]
-  end
-
-  FE -->|"HTTP / REST JSON"| API
-  API --- B5
-  API <-->|"predict · explain · classify"| ML
-  API <-->|"read / write"| DB
-  API --> SVC
-  API -->|"fetch live flights"| E1
-  API -->|"fetch weather"| E2
-  E1 --> D1
-  E2 --> D1
-  D1 --> ML
-  D2 --> B4
-  C6 -->|"predicted positions"| C7
-  C1 -->|"risk probability"| C7
-  SVC --> G3
-  SVC <-->|"monitor · alert · log"| DB
-  H1 --> H2
-  H2 --> H3
-  H2 --> H4
-  H4 -->|"load at startup"| ML
-```
+![SkyGuard AI System Architecture](docs/images/system-architecture.svg)
 
 ---
 
@@ -142,7 +65,7 @@ flowchart TD
 - **Future Risk Predictor** - Chains trajectory forecaster → XGBoost for proactive multi-step risk scoring
 - **Dynamic Risk Thresholds** - Phase-aware (takeoff 0.85×, landing 0.80×), altitude-zone, and weather-context (thunderstorm 0.75×) adaptive scoring
 - **Class Weight Balancing** - Handles imbalanced data: {0: 0.498, 1: 1.306, 2: 4.386}
-- **38 Engineered Features** - Flight dynamics, weather conditions, temporal patterns (XGBoost uses 21 features)
+- **Engineered Features** - Flight dynamics, weather conditions, temporal patterns (XGBoost uses 21 features)
 - **SHAP Explainability** - Per-flight feature attribution with waterfall plot visualizations
 
 ### 📡 Real Data Infrastructure
@@ -237,30 +160,6 @@ python -m http.server 5500
 3. **View analytics** - Click "📊 View Analytics" to see risk distribution and charts
 4. **Create watchlist** - Go to Dashboard → Create watchlist for automated monitoring
 5. **Enable alerts** - Go to Settings → Enable email alerts for high-risk flights
-
-📚 **[Full Installation Guide](#-installation)** | 🔧 **[Configuration Guide](#-configuration)**
-
----
-
-## 📸 Screenshots
-
-<div align="center">
-
-### Main Dashboard
-*Real-time flight tracking with interactive map and risk indicators*
-
-### Analytics View
-*Comprehensive statistics with charts and weather data*
-
-### User Dashboard
-*Personal watchlists, alerts, and preferences*
-
-### Admin Panel
-*System metrics, user management, and audit logs*
-
-> 💡 **Tip**: Screenshots coming soon! The app features a beautiful dark theme with smooth animations.
-
-</div>
 
 ---
 
@@ -380,9 +279,9 @@ python collect_real_data.py --requests 10 --region global
 python train_models.py --use-real-data
 ```
 
-**Training takes ~5-10 minutes and will:**
+**Training takes ~10-15 minutes and will:**
 - Load 33,568 Real Flight Records from `real_flight_data/`
-- Engineer 38 features (flight dynamics, weather, advanced patterns)
+- Engineer features (flight dynamics, weather, advanced patterns)
 - Apply class weight balancing
 - Train 6 standalone models:
   - XGBoost Risk Predictor (primary)
@@ -490,12 +389,11 @@ ALERT_CHECK_INTERVAL=300
 OPENWEATHER_API_KEY = "your_api_key_here"
 
 # ML Model Paths
-XGBOOST_MODEL_PATH = "training_results/xgboost_risk_predictor.pkl"
+XGBOOST_MODEL_PATH = "models/risk_predictor.pkl"
 LSTM_AUTOENCODER_PATH = "models/lstm_autoencoder.keras"
 TRAJECTORY_PREDICTOR_PATH = "models/trajectory_predictor.keras"
-ISOLATION_FOREST_PATH = "training_results/isolation_forest.pkl"
-KMEANS_PATH = "training_results/kmeans_clustering.pkl"
-SCALER_PATH = "training_results/scaler.pkl"
+ISOLATION_FOREST_PATH = "models/isolation_forest.pkl"
+KMEANS_PATH = "models/flight_cluster.pkl"
 
 # API Rate Limiting
 OPENSKY_DELAY = 30  # seconds between requests
@@ -888,7 +786,7 @@ inference_service = InferenceService()
 # 2. Fetch live flight data
 flights = fetch_flights(bbox=(6, 38, 68, 98))  # India region
 
-# 3. Build features (38 features total: flight dynamics + weather + advanced patterns)
+# 3. Build features (features : flight dynamics + weather + advanced patterns)
 featured_flights = build_featured_flights(flights, weather_service)
 
 # 4. ML predictions
@@ -1031,174 +929,14 @@ train_models.py → data cleaning, splitting, scaling
 train_models.py → 6 ML models (XGBoost, RF, LSTM, etc.)
 
 # 5. Model Persistence
-training_results/xgboost_risk_predictor.pkl
-training_results/random_forest_baseline.pkl
+models/risk_predictor.pkl
 models/lstm_autoencoder.keras
 models/trajectory_predictor.keras
 ```
 
 ---
 
-## Project Structure
-
-```
-flight-risk-ai/
-│
-├── 📄 README.md                      # This file
-├── 📄 DOCUMENTATION.md              # Detailed documentation
-├── 📄 requirements.txt              # Python dependencies
-├── 📄 config.py                     # API keys and configuration
-├── 📄 config.example.py             # Configuration template
-├── 📄 setup.py                      # Database initialization
-├── 📄 .env                          # Environment variables (auto-generated)
-│
-├── 📄 train_models.py               # Main training script (entry point)
-├── 📄 research_analysis.py          # Random Forest baseline training
-├── 📄 ablation_study.py             # Feature ablation analysis
-│
-├── 📄 collect_real_data.py          # OpenSky data collection script
-├── 📄 collect_high_risk_data.py     # High-risk flight collector
-├── 📄 collect_medium_risk_data.py   # Medium-risk flight collector
-├── 📄 check_data.py                 # Data validation script
-├── 📄 check_features.py             # Feature engineering checker
-├── 📄 check_weather_data.py         # Weather API tester
-│
-├── 📄 test_api_key.py               # OpenWeather API tester
-├── 📄 test_real_data_accuracy.py    # Model accuracy validator
-├── 📄 cleanup_expired_accounts.py   # Account cleanup cron job
-├── 📄 migrate_database.py           # Database migration script
-│
-├── 📂 src/                          # Backend source code
-│   ├── 📄 __init__.py
-│   │
-│   ├── 📂 auth/                     # Authentication system
-│   │   ├── 📄 __init__.py
-│   │   ├── 📄 routes.py             # Auth endpoints (register, login, OTP)
-│   │   └── 📄 jwt_utils.py          # JWT token utilities
-│   │
-│   ├── 📂 user/                     # User management
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 routes.py             # User endpoints (preferences, watchlists, alerts)
-│   │
-│   ├── 📂 admin/                    # Admin panel
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 routes.py             # Admin endpoints (users, metrics, audit logs)
-│   │
-│   ├── 📂 database/                 # Database models
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 models.py             # SQLAlchemy models (User, Watchlist, Alert, etc.)
-│   │
- │   ├── 📂 config/                   # Configuration modules
- │   │   ├── 📄 __init__.py
- │   │   └── 📄 risk_thresholds.py    # Dynamic risk threshold rules (phase/altitude/weather)
- │   │
- │   ├── 📂 data/                     # Data fetching & preprocessing
- │   │   ├── 📄 __init__.py
- │   │   ├── 📄 fetch_opensky.py      # OpenSky Network API client
- │   │   ├── 📄 fetch_weather.py      # OpenWeatherMap API client
- │   │   ├── 📄 weather_cache.py      # Grid-based weather cache (50km cells, 15-min TTL)
- │   │   └── 📄 preprocessing.py      # Data normalisation and scaling utilities
- │   │
- │   ├── 📂 features/                 # Feature engineering
- │   │   ├── 📄 __init__.py
- │   │   └── 📄 build_features.py     # 38-feature construction pipeline
- │   │
- │   ├── 📂 models/                   # ML models
- │   │   ├── 📄 __init__.py
- │   │   ├── 📄 risk_predictor.py     # XGBoost risk classifier
- │   │   ├── 📄 lstm_autoencoder.py   # LSTM anomaly detector
- │   │   ├── 📄 isolation_forest.py   # Outlier detector
- │   │   ├── 📄 clustering.py         # K-Means + PCA clustering
- │   │   ├── 📄 trajectory_predictor.py  # LSTM trajectory forecaster
- │   │   ├── 📄 future_risk_predictor.py # Chained trajectory→risk pipeline (NEW)
- │   │   └── 📄 inference.py          # Unified inference service
-│   │
-│   ├── 📂 monitoring/               # Watchlist monitoring
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 watchlist_monitor.py  # Automated monitoring service
-│   │
-│   ├── 📂 email/                    # Email notifications
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 email_service.py      # Gmail SMTP service
-│   │
-│   ├── 📂 serving/                  # API server
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 api.py                # Flask REST API (main server)
-│   │
-│   ├── 📂 services/                 # Background services
-│   │   ├── 📄 __init__.py
-│   │   └── 📄 alert_service.py      # Alert scheduling service
-│   │
- │   └── 📂 utils/                    # Training utilities
- │       ├── 📄 __init__.py
- │       ├── 📄 train_models.py       # Training orchestration pipeline
- │       └── 📄 training_logger.py    # Structured per-session training logger
-│
-├── 📂 frontend/                     # Web interface
-│   ├── 📄 index.html                # Main application page
-│   ├── 📄 app.js                    # Main JavaScript logic
-│   ├── 📄 styles.css                # Global styles
-│   │
-│   ├── 📄 login.html                # Login page
-│   ├── 📄 signup.html               # Registration page
-│   ├── 📄 auth.js                   # Auth page logic
-│   ├── 📄 auth-styles.css           # Auth page styles
-│   │
-│   ├── 📄 dashboard.html            # User dashboard
-│   ├── 📄 dashboard.js              # Dashboard logic
-│   │
-│   ├── 📄 settings.html             # User settings
-│   ├── 📄 settings.js               # Settings logic
-│   │
-│   ├── 📄 admin.html                # Admin panel
-│   ├── 📄 admin.js                  # Admin panel logic
-│   │
-│   └── 📂 images/                   # Static assets
-│       └── 📄 logo.png              # Application logo
-│
- ├── 📂 models/                       # Trained ML models (auto-generated)
- │   ├── 📄 README.md                 # Model documentation
- │   ├── 📄 risk_predictor.pkl        # XGBoost primary model
- │   ├── 📄 isolation_forest.pkl      # Isolation Forest weights
- │   ├── 📄 flight_clusterer.pkl      # K-Means + PCA clustering model
- │   ├── 📄 lstm_threshold.pkl        # LSTM autoencoder anomaly threshold
- │   ├── 📄 lstm_autoencoder.keras    # LSTM autoencoder weights
- │   ├── 📄 lstm_autoencoder.h5       # Legacy Keras format
- │   └── 📄 trajectory_predictor.keras  # Trajectory LSTM weights
- │
- ├── 📂 real_flight_data/             # Real ADS-B data (33,568 records)
- │   ├── 📄 global_20260111_124902.csv
- │   ├── 📄 global_20260111_125046.csv
- │   ├── 📄 global_20260115_134555.csv
- │   └── ... (59 CSV files total)
- │
- ├── 📂 training_results/             # Training outputs (auto-generated, per-session)
- │   └── 📂 session_<timestamp>/
- │       ├── 📄 SUMMARY_REPORT.md     # Human-readable training summary
- │       ├── 📄 training_results.json # Machine-readable metrics
- │       ├── 📄 advanced_metrics.json # Detailed per-class metrics
- │       ├── 📄 training_data.pkl     # Preprocessed training data snapshot
- │       ├── 📄 feature_importance.png
- │       ├── 📄 roc_pr_curves.png
- │       ├── 📄 *_confusion_matrix.png
- │       ├── 📄 *_training_history.png
- │       └── 📂 ablation_study/       # Ablation results (if --run-ablation)
- │           ├── 📄 ABLATION_STUDY_SUMMARY.md
- │           ├── 📄 feature_ablation_results.csv
- │           ├── 📄 feature_domain_ablation.csv
- │           ├── 📄 data_ablation_results.csv
- │           └── 📄 model_component_summary.csv
-│
-├── 📂 Documents/                    # Project documentation (excluded)
-│   ├── 📄 ieee.tex                  # IEEE paper LaTeX
-│   ├── 📄 onepage.md                # One-page summary
-│   ├── 📄 Project Proposal.md       # Project proposal
-│   └── 📂 paper text files/         # Research papers
-│
-└── 📄 flight_risk_ai.db             # SQLite database (generated)
-```
-
- ### Key Directories Explained
+## Key Directories Explained
 
  - **`src/`** - All backend Python code organized by functionality
  - **`src/config/`** - Dynamic risk threshold rules and configuration
@@ -1217,8 +955,6 @@ flight-risk-ai/
 ### Data & Accuracy
 - ✅ **Trained on 33,568 Real Flight Records** from OpenSky Network
 - ✅ **95%+ test accuracy** on real ADS-B data
-- ⚠️ **Research/educational project** - not certified for aviation safety decisions
-- ⚠️ **Real-time predictions only** - does not replace professional flight risk assessment
 - 💡 **For production**: Collect more diverse data, retrain regularly, implement monitoring
 
 ### API Rate Limits
@@ -1287,17 +1023,6 @@ This project is for **educational, research, and demonstration purposes**.
   - Free tier limitations apply
   - Proper API key usage required
 
-### Disclaimer
-This software is provided "as is" without warranty. It is **not certified** for:
-- Real-time aviation safety decisions
-- Flight planning or navigation
-- Emergency response systems
-- Commercial aviation operations
-
-Always consult certified aviation authorities and systems for safety-critical decisions.
-
----
-
 ## 🙏 Acknowledgments
 
 ### Project Contributors
@@ -1314,24 +1039,6 @@ Always consult certified aviation authorities and systems for safety-critical de
 - **Leaflet.js** - Interactive map visualizations
 - **Chart.js** - Beautiful and responsive chart library
 
-**Special thanks to the aviation data community for making real-time flight tracking accessible!**
-
----
-
-## 📞 Support & Resources
-
-### Documentation
-- 📖 **Detailed Guide**: [DOCUMENTATION.md](DOCUMENTATION.md) (if available)
-- 📄 **Training Fixes**: [TRAINING_FIX_SUMMARY.md](TRAINING_FIX_SUMMARY.md)
-- 📄 **Weather Report**: [WEATHER_VERIFICATION_REPORT.md](WEATHER_VERIFICATION_REPORT.md)
-- 📄 **Quick Start**: [QUICK_START.md](QUICK_START.md)
-
-### Community & Help
-- 🐛 **Bug Reports**: Open an issue with `bug` label
-- 💡 **Feature Requests**: Open an issue with `enhancement` label
-- 💬 **Questions**: Open a discussion in GitHub Discussions
-- 📧 **Contact**: [Create an issue](https://github.com/your-repo/issues) for inquiries
-
 ---
 
 <div align="center">
@@ -1343,10 +1050,6 @@ Always consult certified aviation authorities and systems for safety-critical de
 ⭐ **Star this repo** if you find it useful!
 
 [⬆ Back to Top](#-skyguard-ai)
-
----
-
- *Last Updated: March 25, 2026 | Version 2.1*
 
 </div>
 

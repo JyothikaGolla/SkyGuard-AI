@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1060" viewBox="0 0 1500 1060" role="img" aria-labelledby="title desc">
+  <title id="title">SkyGuard AI System Architecture</title>
+  <desc id="desc">Five-tier architecture diagram for SkyGuard AI matching the updated TikZ layout in the README.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .tier { fill: none; stroke: #6b7280; stroke-width: 2; stroke-dasharray: 8 8; }
+      .label { font: 700 21px 'Segoe UI', Arial, sans-serif; fill: #111827; }
+      .boxText { font: 700 18px 'Segoe UI', Arial, sans-serif; fill: #ffffff; }
+      .small { font: 600 13px 'Segoe UI', Arial, sans-serif; fill: #f3f4f6; }
+      .arrow { stroke: #111827; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <polygon points="0 0, 12 4, 0 8" fill="#111827" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1500" height="1060"/>
+
+  <!-- Tier 1 -->
+  <rect class="tier" x="470" y="70" width="560" height="120" rx="14"/>
+  <text class="label" x="750" y="55" text-anchor="middle">Tier 1 — Data Ingestion</text>
+  <rect x="525" y="108" width="210" height="56" rx="8" fill="#2563eb"/>
+  <text class="boxText" x="630" y="142" text-anchor="middle">OpenSky ADS-B</text>
+  <rect x="770" y="108" width="210" height="56" rx="8" fill="#0f766e"/>
+  <text class="boxText" x="875" y="142" text-anchor="middle">OpenWeatherMap</text>
+
+  <!-- Tier 2 -->
+  <rect class="tier" x="360" y="245" width="780" height="126" rx="14"/>
+  <text class="label" x="355" y="245" text-anchor="start">Tier 2 — Feature Engineering</text>
+  <rect x="485" y="285" width="530" height="62" rx="8" fill="#7c3aed"/>
+  <text class="boxText" x="750" y="312" text-anchor="middle">Feature Engineering Pipeline</text>
+  <text class="small" x="750" y="333" text-anchor="middle">Flight Dynamics · Weather · Temporal</text>
+
+  <!-- Tier 3 -->
+  <rect class="tier" x="120" y="430" width="1260" height="255" rx="14"/>
+  <text class="label" x="140" y="434" text-anchor="start">Tier 3 — ML Inference</text>
+
+  <rect x="130" y="480" width="170" height="62" rx="8" fill="#dc2626"/>
+  <text class="boxText" x="215" y="505" text-anchor="middle">XGBoost</text>
+  <text class="small" x="215" y="525" text-anchor="middle">Risk Classifier</text>
+
+  <rect x="325" y="480" width="170" height="62" rx="8" fill="#ea580c"/>
+  <text class="boxText" x="410" y="505" text-anchor="middle">LSTM</text>
+  <text class="small" x="410" y="525" text-anchor="middle">Autoencoder</text>
+
+  <rect x="520" y="480" width="170" height="62" rx="8" fill="#166534"/>
+  <text class="boxText" x="605" y="505" text-anchor="middle">Isolation</text>
+  <text class="small" x="605" y="525" text-anchor="middle">Forest</text>
+
+  <rect x="715" y="480" width="170" height="62" rx="8" fill="#0e7490"/>
+  <text class="boxText" x="800" y="505" text-anchor="middle">K-Means</text>
+  <text class="small" x="800" y="525" text-anchor="middle">+ PCA</text>
+
+  <rect x="500" y="585" width="300" height="62" rx="8" fill="#92400e"/>
+  <text class="boxText" x="650" y="610" text-anchor="middle">Trajectory Predictor</text>
+  <text class="small" x="650" y="630" text-anchor="middle">LSTM Seq2Seq</text>
+
+  <rect x="830" y="585" width="240" height="62" rx="8" fill="#be185d"/>
+  <text class="boxText" x="950" y="610" text-anchor="middle">Future Risk</text>
+  <text class="small" x="950" y="630" text-anchor="middle">Predictor</text>
+
+  <!-- Tier 4 -->
+  <rect class="tier" x="300" y="730" width="900" height="120" rx="14"/>
+  <text class="label" x="305" y="730" text-anchor="start">Tier 4 — Risk Synthesis</text>
+  <rect x="435" y="772" width="630" height="58" rx="8" fill="#111827"/>
+  <text class="boxText" x="750" y="807" text-anchor="middle">Risk Synthesiser · Dynamic Threshold Manager · SHAP Explainer</text>
+
+  <!-- Tier 5 -->
+  <rect class="tier" x="190" y="890" width="1120" height="130" rx="14"/>
+  <text class="label" x="195" y="890" text-anchor="start">Tier 5 — User Interface &amp; Alerting</text>
+
+  <rect x="250" y="935" width="250" height="62" rx="8" fill="#4b5563"/>
+  <text class="boxText" x="375" y="960" text-anchor="middle">Web Dashboard</text>
+  <text class="small" x="375" y="980" text-anchor="middle">Leaflet · Chart.js</text>
+
+  <rect x="535" y="935" width="250" height="62" rx="8" fill="#4b5563"/>
+  <text class="boxText" x="660" y="960" text-anchor="middle">Flask REST API</text>
+  <text class="small" x="660" y="980" text-anchor="middle">JWT · Audit Log</text>
+
+  <rect x="820" y="935" width="250" height="62" rx="8" fill="#4b5563"/>
+  <text class="boxText" x="945" y="960" text-anchor="middle">Alert Service</text>
+  <text class="small" x="945" y="980" text-anchor="middle">Email · Watchlist</text>
+
+  <!-- Arrows -->
+  <path class="arrow" d="M630 164 L750 285"/>
+  <path class="arrow" d="M875 164 L750 285"/>
+  <path class="arrow" d="M750 347 L750 430"/>
+  <path class="arrow" d="M750 685 L750 730"/>
+  <path class="arrow" d="M750 850 L750 890"/>
+</svg>
