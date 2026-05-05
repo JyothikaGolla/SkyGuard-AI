@@ -837,7 +837,7 @@ def explain_flight_risk(icao24):
 
 
 # ============================================================================
-# NEW ENDPOINTS - Professor Requirements #1 & #3
+# NEW ENDPOINTS 
 # ============================================================================
 
 @app.route("/api/flights/<icao24>/future-risk", methods=["GET", "POST"])
@@ -879,67 +879,103 @@ def get_future_risk(icao24):
                 "details": "Please wait for models to initialize or train models first"
             }), 503
         
-        # Get parameters
+        # Get parameters (from query args)
         time_horizon = int(request.args.get('time_horizon', 5))
         time_step_seconds = int(request.args.get('time_step_seconds', 60))
         distance_km = request.args.get('distance_km', None)
         speed_kmh = float(request.args.get('speed_kmh', 800))
-        
-        # Fetch current flight data
-        bbox = DEFAULT_BBOX
-        raw = fetch_flights(bbox=bbox)
-        
-        if raw.empty:
-            return jsonify({"error": "No flights available"}), 404
-        
-        # Find specific flight
-        flight_data = raw[raw['icao24'] == icao24]
-        if flight_data.empty:
-            return jsonify({"error": f"Flight {icao24} not found"}), 404
-        
-        # Build features
-        featured = build_featured_flights(flight_data)
-        
-        # Prepare feature vector for risk prediction
-        feature_cols = [
-            'altitude', 'velocity', 'vertical_rate', 'heading',
-            'speed_kmh', 'is_climbing', 'is_descending',
-            'speed_variation', 'altitude_change_rate', 'heading_change_rate',
-            'acceleration', 'temperature', 'wind_speed', 'visibility',
-            'crosswind', 'headwind', 'severe_weather', 'low_visibility',
-            'high_winds', 'icing_risk', 'time_since_last_update'
-        ]
-        available_cols = [col for col in feature_cols if col in featured.columns]
-        current_features = featured[available_cols].fillna(0).iloc[0].values
-        
-        # Prepare trajectory sequence (we'll use simplified single-point extrapolation)
-        # In production, this should use historical trajectory data
-        current_point = np.array([
-            featured['lat'].iloc[0],
-            featured['lon'].iloc[0],
-            featured['altitude'].iloc[0],
-            featured['heading'].iloc[0]
-        ])
-        
-        # Create a simple historical sequence (repeated current point as fallback)
-        # In production, fetch actual historical trajectory
-        sequence_length = 10
-        current_sequence = np.tile(current_point, (sequence_length, 1))
-        
-        # Predict future risk
-        if distance_km is not None:
-            # Distance-based prediction
-            distance_km = float(distance_km)
-            result = models.predict_risk_at_distance(
-                current_sequence, current_features,
-                distance_km, speed_kmh
-            )
+
+        # Support POST requests with flight data payload to avoid depending on live fetch
+        if request.method == 'POST':
+            payload = request.get_json(silent=True) or {}
+            flight_data_dict = payload.get('flight_data', {})
+
+            # Build feature vector from provided flight data
+            feature_cols = [
+                'altitude', 'velocity', 'vertical_rate', 'heading',
+                'speed_kmh', 'is_climbing', 'is_descending',
+                'speed_variation', 'altitude_change_rate', 'heading_change_rate',
+                'acceleration', 'temperature', 'wind_speed', 'visibility',
+                'crosswind', 'headwind', 'severe_weather', 'low_visibility',
+                'high_winds', 'icing_risk', 'time_since_last_update'
+            ]
+            X_values = []
+            for col in feature_cols:
+                X_values.append(flight_data_dict.get(col, 0))
+
+            current_features = np.array(X_values)
+
+            # Build current point (lat, lon, altitude, heading) from payload
+            lat = flight_data_dict.get('lat') or flight_data_dict.get('latitude') or 0.0
+            lon = flight_data_dict.get('lon') or flight_data_dict.get('longitude') or 0.0
+            altitude = flight_data_dict.get('altitude', 0.0)
+            heading = flight_data_dict.get('heading', 0.0)
+
+            current_point = np.array([lat, lon, altitude, heading])
+            sequence_length = 10
+            current_sequence = np.tile(current_point, (sequence_length, 1))
+
+            # Choose prediction mode
+            if distance_km is not None:
+                distance_km = float(distance_km)
+                result = models.predict_risk_at_distance(
+                    current_sequence, current_features, distance_km, speed_kmh
+                )
+            else:
+                result = models.predict_future_risk(
+                    current_sequence, current_features, time_horizon, time_step_seconds
+                )
+
         else:
-            # Time-based prediction
-            result = models.predict_future_risk(
-                current_sequence, current_features,
-                time_horizon, time_step_seconds
-            )
+            # Fetch current flight data from live source for GET requests
+            bbox = DEFAULT_BBOX
+            raw = fetch_flights(bbox=bbox)
+
+            if raw.empty:
+                return jsonify({"error": "No flights available"}), 404
+
+            # Find specific flight
+            flight_data = raw[raw['icao24'] == icao24]
+            if flight_data.empty:
+                return jsonify({"error": f"Flight {icao24} not found"}), 404
+
+            # Build features
+            featured = build_featured_flights(flight_data)
+
+            # Prepare feature vector for risk prediction
+            feature_cols = [
+                'altitude', 'velocity', 'vertical_rate', 'heading',
+                'speed_kmh', 'is_climbing', 'is_descending',
+                'speed_variation', 'altitude_change_rate', 'heading_change_rate',
+                'acceleration', 'temperature', 'wind_speed', 'visibility',
+                'crosswind', 'headwind', 'severe_weather', 'low_visibility',
+                'high_winds', 'icing_risk', 'time_since_last_update'
+            ]
+            available_cols = [col for col in feature_cols if col in featured.columns]
+            current_features = featured[available_cols].fillna(0).iloc[0].values
+
+            # Prepare trajectory sequence (we'll use simplified single-point extrapolation)
+            current_point = np.array([
+                featured['lat'].iloc[0],
+                featured['lon'].iloc[0],
+                featured['altitude'].iloc[0],
+                featured['heading'].iloc[0]
+            ])
+
+            # Create a simple historical sequence (repeated current point as fallback)
+            sequence_length = 10
+            current_sequence = np.tile(current_point, (sequence_length, 1))
+
+            # Predict future risk
+            if distance_km is not None:
+                distance_km = float(distance_km)
+                result = models.predict_risk_at_distance(
+                    current_sequence, current_features, distance_km, speed_kmh
+                )
+            else:
+                result = models.predict_future_risk(
+                    current_sequence, current_features, time_horizon, time_step_seconds
+                )
         
         if result is None or not result.get('success', False):
             return jsonify({
@@ -957,7 +993,18 @@ def get_future_risk(icao24):
             })
         
         # Get current risk level from first prediction or classify current state
-        current_risk_score = float(featured['risk_score'].iloc[0])
+        # Handle both GET (featured) and POST (flight_data_dict) paths
+        if request.method == 'POST':
+            current_risk_score = float(flight_data_dict.get('ml_risk_score', flight_data_dict.get('risk_score', 0.5)))
+            callsign = flight_data_dict.get('callsign', icao24)
+            current_altitude = float(flight_data_dict.get('altitude', 0.0))
+            current_speed_kmh = float(flight_data_dict.get('speed_kmh', 0.0))
+        else:
+            current_risk_score = float(featured['risk_score'].iloc[0])
+            callsign = featured['callsign'].iloc[0]
+            current_altitude = float(featured['altitude'].iloc[0])
+            current_speed_kmh = float(featured['speed_kmh'].iloc[0])
+        
         if current_risk_score < 0.33:
             current_risk_level = 'LOW'
         elif current_risk_score < 0.66:
@@ -968,9 +1015,9 @@ def get_future_risk(icao24):
         response = {
             'success': True,
             'icao24': icao24,
-            'callsign': featured['callsign'].iloc[0],
-            'current_altitude': float(featured['altitude'].iloc[0]),
-            'current_speed_kmh': float(featured['speed_kmh'].iloc[0]),
+            'callsign': callsign,
+            'current_altitude': current_altitude,
+            'current_speed_kmh': current_speed_kmh,
             'current_risk_level': current_risk_level,
             'current_risk_score': current_risk_score,
             'predictions': predictions,

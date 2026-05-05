@@ -5,8 +5,13 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:  # pragma: no cover - Python < 3.9 fallback
+    ZoneInfo = None
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +33,24 @@ class EmailService:
         
         if not self.is_configured:
             logger.warning("Email service not configured. Set SMTP_USER and SMTP_PASSWORD in .env file")
+
+    def _format_ist_timestamp(self, dt=None):
+        """Format a timestamp in IST so email clients do not display GMT/UTC time."""
+        dt = dt or datetime.now(timezone.utc)
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+        if ZoneInfo is not None:
+            try:
+                ist = dt.astimezone(ZoneInfo('Asia/Kolkata'))
+            except Exception:
+                ist = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
+        else:
+            ist = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
+
+        # Keep the display label explicit so the receiving client cannot reinterpret it.
+        return ist.strftime('%B %d, %Y at %I:%M %p IST')
     
     def send_email(self, to_email, subject, html_body, text_body=None):
         """
@@ -466,24 +489,26 @@ This is an automated message from SkyGuard AI.
             
             <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px; font-size: 18px;">Flight Summary</h3>
             <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-around; text-align: center;">
-                    <div>
-                        <div style="color: #dc3545; font-size: 24px; font-weight: bold;">{high_count}</div>
-                        <div style="color: #666; font-size: 12px;">HIGH</div>
-                    </div>
-                    <div>
-                        <div style="color: #ffc107; font-size: 24px; font-weight: bold;">{medium_count}</div>
-                        <div style="color: #666; font-size: 12px;">MEDIUM</div>
-                    </div>
-                    <div>
-                        <div style="color: #28a745; font-size: 24px; font-weight: bold;">{low_count}</div>
-                        <div style="color: #666; font-size: 12px;">LOW</div>
-                    </div>
-                    <div>
-                        <div style="color: #667eea; font-size: 24px; font-weight: bold;">{flight_count}</div>
-                        <div style="color: #666; font-size: 12px;">TOTAL</div>
-                    </div>
-                </div>
+                <table role="presentation" style="width: 100%; border-collapse: collapse; table-layout: fixed; text-align: center;">
+                    <tr>
+                        <td style="padding: 0 6px; width: 25%; vertical-align: top;">
+                            <div style="color: #dc3545; font-size: 24px; font-weight: bold; line-height: 1;">{high_count}</div>
+                            <div style="color: #666; font-size: 12px; margin-top: 6px; letter-spacing: 0.5px;">HIGH</div>
+                        </td>
+                        <td style="padding: 0 6px; width: 25%; vertical-align: top;">
+                            <div style="color: #ffc107; font-size: 24px; font-weight: bold; line-height: 1;">{medium_count}</div>
+                            <div style="color: #666; font-size: 12px; margin-top: 6px; letter-spacing: 0.5px;">MEDIUM</div>
+                        </td>
+                        <td style="padding: 0 6px; width: 25%; vertical-align: top;">
+                            <div style="color: #28a745; font-size: 24px; font-weight: bold; line-height: 1;">{low_count}</div>
+                            <div style="color: #666; font-size: 12px; margin-top: 6px; letter-spacing: 0.5px;">LOW</div>
+                        </td>
+                        <td style="padding: 0 6px; width: 25%; vertical-align: top;">
+                            <div style="color: #667eea; font-size: 24px; font-weight: bold; line-height: 1;">{flight_count}</div>
+                            <div style="color: #666; font-size: 12px; margin-top: 6px; letter-spacing: 0.5px;">TOTAL</div>
+                        </td>
+                    </tr>
+                </table>
             </div>
             
             <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px; font-size: 18px;">Flight Details</h3>
@@ -512,7 +537,7 @@ This is an automated message from SkyGuard AI.
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 13px; text-align: center;">
                 <p style="margin: 5px 0;">This is an automated message from SkyGuard AI</p>
-                <p style="margin: 5px 0;">Sent at {(datetime.now() + timedelta(hours=5, minutes=30)).strftime('%Y-%m-%d %I:%M:%S %p IST')}</p>
+                <p style="margin: 5px 0;">Sent at {self._format_ist_timestamp()}</p>
             </div>
         </div>
     </div>
@@ -566,7 +591,7 @@ Flight #{i}:
 
 View your dashboard: http://127.0.0.1:5500/dashboard.html
 
-Alert sent on {datetime.now().strftime('%B %d, %Y at %I:%M %p')}
+Alert sent on {self._format_ist_timestamp()}
 
 ---
 This is an automated alert from SkyGuard AI.

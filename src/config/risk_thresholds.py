@@ -204,22 +204,47 @@ class RiskThresholdManager:
     
     def get_threshold_info(self) -> Dict:
         """Get current threshold configuration as dict."""
+        # Helper to safely convert numeric values for JSON (replace infinities/nan with None)
+        import math
+
+        def _safe_num(x):
+            try:
+                if x is None:
+                    return None
+                xf = float(x)
+                if math.isfinite(xf):
+                    return xf
+                else:
+                    return None
+            except Exception:
+                return None
+
+        # Convert altitude zones and multipliers to JSON-safe types
+        altitude_zones_safe = [
+            {
+                'min': _safe_num(z[0]),
+                'max': _safe_num(z[1]),
+                'multiplier': _safe_num(z[2])
+            }
+            for z in self.ALTITUDE_ZONES
+        ]
+
+        phase_multipliers_safe = {k: _safe_num(v) for k, v in self.PHASE_ADJUSTMENTS.items()}
+        weather_multipliers_safe = {k: _safe_num(v) for k, v in self.WEATHER_ADJUSTMENTS.items()}
+
         return {
             'base_thresholds': {
-                'low': self.base_low,
-                'high': self.base_high
+                'low': _safe_num(self.base_low),
+                'high': _safe_num(self.base_high)
             },
             'adjustments_enabled': {
-                'phase': self.enable_phase_adj,
-                'altitude': self.enable_altitude_adj,
-                'weather': self.enable_weather_adj
+                'phase': bool(self.enable_phase_adj),
+                'altitude': bool(self.enable_altitude_adj),
+                'weather': bool(self.enable_weather_adj)
             },
-            'phase_multipliers': self.PHASE_ADJUSTMENTS,
-            'altitude_zones': [
-                {'min': z[0], 'max': z[1], 'multiplier': z[2]}
-                for z in self.ALTITUDE_ZONES
-            ],
-            'weather_multipliers': self.WEATHER_ADJUSTMENTS
+            'phase_multipliers': phase_multipliers_safe,
+            'altitude_zones': altitude_zones_safe,
+            'weather_multipliers': weather_multipliers_safe
         }
 
 

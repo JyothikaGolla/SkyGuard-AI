@@ -3,6 +3,7 @@ let authToken = null;
 let currentUser = null;
 let watchlists = [];
 let alerts = [];
+let unreadAlertsCount = 0;
 let preferences = null;
 
 // Check authentication
@@ -87,6 +88,24 @@ async function initDashboard() {
     }
 }
 
+function applyPreferencesToForm(preferenceData) {
+    if (!preferenceData) return;
+
+    const emailAlertsEl = document.getElementById('pref-email-alerts');
+    const riskThresholdEl = document.getElementById('pref-risk-threshold');
+    const alertFrequencyEl = document.getElementById('pref-alert-frequency');
+
+    if (emailAlertsEl) {
+        emailAlertsEl.checked = !!preferenceData.email_alerts;
+    }
+    if (riskThresholdEl) {
+        riskThresholdEl.value = preferenceData.risk_threshold || 'MEDIUM';
+    }
+    if (alertFrequencyEl) {
+        alertFrequencyEl.value = preferenceData.alert_frequency || 'immediate';
+    }
+}
+
 // Preferences
 async function loadPreferences() {
     try {
@@ -100,14 +119,22 @@ async function loadPreferences() {
             logout();
             return;
         }
+
+        const cachedPreferences = localStorage.getItem('skyguard_preferences');
+        if (cachedPreferences) {
+            try {
+                preferences = JSON.parse(cachedPreferences);
+                applyPreferencesToForm(preferences);
+            } catch (cacheError) {
+                console.warn('Failed to parse cached preferences:', cacheError);
+            }
+        }
         
         if (response.ok) {
             const data = await response.json();
             preferences = data.preferences;
-            
-            document.getElementById('pref-email-alerts').checked = preferences.email_alerts || false;
-            document.getElementById('pref-risk-threshold').value = preferences.risk_threshold || 'MEDIUM';
-            document.getElementById('pref-alert-frequency').value = preferences.alert_frequency || 'immediate';
+            localStorage.setItem('skyguard_preferences', JSON.stringify(preferences));
+            applyPreferencesToForm(preferences);
         }
     } catch (error) {
         console.error('Failed to load preferences:', error);
@@ -134,6 +161,7 @@ async function savePreferences() {
         
         if (response.ok) {
             preferences = data; // Update local preferences
+            localStorage.setItem('skyguard_preferences', JSON.stringify(preferences));
             showSuccess('Preferences saved successfully!');
             await loadPreferences(); // Reload to confirm
         } else {
@@ -150,6 +178,24 @@ async function savePreferences() {
 }
 
 // Watchlists
+
+async function markAllAlertsRead() {
+    try {
+        const response = await fetch(`${API_BASE}/api/user/alerts/mark-all-read`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (response.ok) {
+            await loadAlerts();
+            await updateStats();
+        }
+    } catch (error) {
+        console.error('Failed to mark all alerts as read:', error);
+    }
+}
 async function loadWatchlists() {
     try {
         const response = await fetch(`${API_BASE}/api/user/watchlists`, {
@@ -353,6 +399,7 @@ async function loadAlerts() {
         if (response.ok) {
             const data = await response.json();
             alerts = data.alerts;
+            unreadAlertsCount = data.unread_count || 0;
             renderAlerts();
         }
     } catch (error) {
@@ -362,6 +409,16 @@ async function loadAlerts() {
 
 function renderAlerts() {
     const container = document.getElementById('alerts-container');
+    const markAllBtn = document.getElementById('mark-all-alerts-read-btn');
+
+    if (markAllBtn) {
+        const hasAlerts = alerts.length > 0;
+        const hasUnread = unreadAlertsCount > 0;
+        markAllBtn.style.display = hasAlerts ? 'inline-flex' : 'none';
+        markAllBtn.disabled = !hasUnread;
+        markAllBtn.style.opacity = hasUnread ? '1' : '0.45';
+        markAllBtn.style.cursor = hasUnread ? 'pointer' : 'not-allowed';
+    }
     
     if (alerts.length === 0) {
         container.innerHTML = '<div class="empty-state">No alerts yet. Alerts will appear here when high-risk flights are detected in your watchlists.</div>';
@@ -414,6 +471,42 @@ async function markAlertRead(id) {
         }
     } catch (error) {
         console.error('Failed to mark alert as read:', error);
+    }
+}
+
+async function markAllAlertsRead() {
+    try {
+        const response = await fetch(`${API_BASE}/api/user/alerts/mark-all-read`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (response.ok) {
+            await loadAlerts();
+            await updateStats();
+        }
+    } catch (error) {
+        console.error('Failed to mark all alerts as read:', error);
+    }
+}
+
+async function markAllAlertsRead() {
+    try {
+        const response = await fetch(`${API_BASE}/api/user/alerts/mark-all-read`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (response.ok) {
+            await loadAlerts();
+            await updateStats();
+        }
+    } catch (error) {
+        console.error('Failed to mark all alerts as read:', error);
     }
 }
 
@@ -836,24 +929,34 @@ async function simulateThresholds() {
 function displayThresholdResults(data) {
     const resultsDiv = document.getElementById('threshold-results');
     resultsDiv.style.display = 'block';
-    
-    const thresholds = data.thresholds;
-    const context = data.context;
-    const adjustments = context.adjustments;
-    
+    // Be defensive about the API response shape. Support both
+    // { thresholds: { low_threshold, high_threshold }, context: { adjustments } }
+    // and { dynamic_thresholds: { low_threshold, high_threshold }, context: { adjustments } }
+    const thresholds = data?.thresholds ?? data?.dynamic_thresholds ?? null;
+    const context = data?.context ?? data?.metadata ?? null;
+    const adjustments = context?.adjustments ?? data?.adjustments ?? { phase_multiplier: 1, altitude_multiplier: 1, weather_multiplier: 1 };
+
+    if (!thresholds || (thresholds.low_threshold == null && thresholds.low == null)) {
+        showError('Invalid threshold response from server');
+        return;
+    }
+
+    // Normalize field names (support low/low_threshold keys)
+    const lowVal = (thresholds.low_threshold ?? thresholds.low) * 1;
+    const highVal = (thresholds.high_threshold ?? thresholds.high) * 1;
+
     // Display threshold values
-    document.getElementById('result-low').textContent = `< ${(thresholds.low_threshold * 100).toFixed(1)}%`;
-    document.getElementById('result-medium').textContent = 
-        `${(thresholds.low_threshold * 100).toFixed(1)}% - ${(thresholds.high_threshold * 100).toFixed(1)}%`;
-    document.getElementById('result-high').textContent = `≥ ${(thresholds.high_threshold * 100).toFixed(1)}%`;
-    
+    document.getElementById('result-low').textContent = `< ${ (lowVal * 100).toFixed(1) }%`;
+    document.getElementById('result-medium').textContent = `${ (lowVal * 100).toFixed(1) }% - ${ (highVal * 100).toFixed(1) }%`;
+    document.getElementById('result-high').textContent = `≥ ${ (highVal * 100).toFixed(1) }%`;
+
     // Display adjustments
     const adjustmentsEl = document.getElementById('threshold-adjustments');
     adjustmentsEl.innerHTML = `
         <strong>Applied Multipliers:</strong> 
-        Phase: ${(adjustments.phase_multiplier * 100).toFixed(0)}% | 
-        Altitude: ${(adjustments.altitude_multiplier * 100).toFixed(0)}% | 
-        Weather: ${(adjustments.weather_multiplier * 100).toFixed(0)}%
+        Phase: ${ ((adjustments.phase_multiplier ?? 1) * 100).toFixed(0) }% | 
+        Altitude: ${ ((adjustments.altitude_multiplier ?? 1) * 100).toFixed(0) }% | 
+        Weather: ${ ((adjustments.weather_multiplier ?? 1) * 100).toFixed(0) }%
     `;
     
     // Display comparison
@@ -861,21 +964,25 @@ function displayThresholdResults(data) {
     const fixedLow = 0.33;
     const fixedHigh = 0.66;
     
-    const lowDiff = ((thresholds.low_threshold - fixedLow) / fixedLow * 100).toFixed(1);
-    const highDiff = ((thresholds.high_threshold - fixedHigh) / fixedHigh * 100).toFixed(1);
-    
-    const lowIcon = lowDiff < 0 ? '📉' : lowDiff > 0 ? '📈' : '➡️';
-    const highIcon = highDiff < 0 ? '📉' : highDiff > 0 ? '📈' : '➡️';
+    // Compute numeric diffs using normalized values to avoid NaN
+    const lowDiffNum = Number.isFinite(lowVal) ? ((lowVal - fixedLow) / fixedLow * 100) : NaN;
+    const highDiffNum = Number.isFinite(highVal) ? ((highVal - fixedHigh) / fixedHigh * 100) : NaN;
+
+    const lowDiff = Number.isFinite(lowDiffNum) ? lowDiffNum.toFixed(1) : 'N/A';
+    const highDiff = Number.isFinite(highDiffNum) ? highDiffNum.toFixed(1) : 'N/A';
+
+    const lowIcon = Number.isFinite(lowDiffNum) ? (lowDiffNum < 0 ? '📉' : lowDiffNum > 0 ? '📈' : '➡️') : 'ℹ️';
+    const highIcon = Number.isFinite(highDiffNum) ? (highDiffNum < 0 ? '📉' : highDiffNum > 0 ? '📈' : '➡️') : 'ℹ️';
     
     comparisonEl.innerHTML = `
         <div style="margin-bottom: 4px;">
-            ${lowIcon} LOW: ${lowDiff > 0 ? '+' : ''}${lowDiff}% from fixed (33.0%)
+            ${lowIcon} LOW: ${lowDiff === 'N/A' ? 'N/A' : (lowDiffNum > 0 ? '+' : '') + lowDiff + '%'} from fixed (33.0%)
         </div>
         <div>
-            ${highIcon} HIGH: ${highDiff > 0 ? '+' : ''}${highDiff}% from fixed (66.0%)
+            ${highIcon} HIGH: ${highDiff === 'N/A' ? 'N/A' : (highDiffNum > 0 ? '+' : '') + highDiff + '%'} from fixed (66.0%)
         </div>
         <div style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">
-            ${Math.abs(parseFloat(lowDiff)) > 5 || Math.abs(parseFloat(highDiff)) > 5 
+            ${ (Number.isFinite(lowDiffNum) && Number.isFinite(highDiffNum)) && (Math.abs(lowDiffNum) > 5 || Math.abs(highDiffNum) > 5) 
                 ? '⚠️ Significant adjustment applied for these conditions' 
                 : '✓ Minor adjustment - conditions are close to standard'}
         </div>

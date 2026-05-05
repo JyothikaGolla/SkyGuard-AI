@@ -584,7 +584,22 @@
 
         <!-- Alerts Section -->
         <div class="card section-full">
-            <h2>🔔 Recent Alerts</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;">
+                <h2 style="margin: 0;">🔔 Recent Alerts</h2>
+                <button id="mark-all-alerts-read-btn" onclick="markAllAlertsRead()" style="
+                    padding: 10px 20px;
+                    background: rgba(59, 130, 246, 0.1);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 8px;
+                    color: #3b82f6;
+                    cursor: pointer;
+                    font-weight: 500;
+                    font-size: 0.9rem;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='rgba(59, 130, 246, 0.2)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'">
+                    ✓ Mark All as Read
+                </button>
+            </div>
             <div id="alerts-container">
                 <div class="empty-state">No alerts yet. Alerts will appear here when high-risk flights are detected in your watchlists.</div>
             </div>

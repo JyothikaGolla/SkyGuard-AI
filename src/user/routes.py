@@ -276,6 +276,38 @@ def mark_alert_read(alert_id):
         return jsonify({'error': f'Failed to mark alert as read: {str(e)}'}), 500
 
 
+@user_bp.route('/alerts/mark-all-read', methods=['POST'])
+@token_required
+def mark_all_alerts_read():
+    """Mark all user's alerts as read."""
+    try:
+        current_user = get_current_user()
+        db = next(get_db())
+
+        unread_alerts = db.query(Alert).filter(
+            Alert.user_id == current_user['user_id'],
+            Alert.is_read == False
+        ).all()
+
+        if not unread_alerts:
+            return jsonify({'message': 'No unread alerts found', 'updated_count': 0}), 200
+
+        now = datetime.utcnow()
+        for alert in unread_alerts:
+            alert.is_read = True
+            alert.read_at = now
+
+        db.commit()
+
+        return jsonify({
+            'message': 'All alerts marked as read',
+            'updated_count': len(unread_alerts)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'Failed to mark all alerts as read: {str(e)}'}), 500
+
+
 @user_bp.route('/analytics-history', methods=['GET'])
 @token_required
 def get_analytics_history():

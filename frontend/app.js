@@ -368,13 +368,9 @@ function updateMapAndTable(flights) {
             <td>${f.speed_kmh != null ? f.speed_kmh.toFixed(0) : "N/A"}</td>
             <td class="${riskClass}">${riskLevel}</td>
             <td>${getAnomalyBadge(anomalyScore)}</td>
-            <td>
-                <button class="btn-explain" onclick='explainFlightRisk(${JSON.stringify(f)})' title="Why this risk level?">
-                    🔍 Explain
-                </button>
-                <button class="btn-future-risk" onclick='showFutureRisk(${JSON.stringify(f)})' title="Predict future risk">
-                    🔮 Future
-                </button>
+            <td style="display: flex; gap: 4px; align-items: center; flex-wrap: nowrap;">
+                <button class="btn-explain" onclick='explainFlightRisk(${JSON.stringify(f)})' title="Explain risk" style="flex-shrink: 0; padding: 4px 6px;">🔍</button>
+                <button class="btn-future-risk" onclick='showFutureRisk(${JSON.stringify(f)})' title="Predict risk" style="flex-shrink: 0; padding: 4px 6px;">🔮</button>
             </td>
         `;
 
@@ -1080,9 +1076,12 @@ async function showFutureRisk(flightData) {
         
         // Fetch default predictions at 2, 5, 10, 15 minutes (using 1-minute steps)
         const response = await fetch(`${API_BASE}/api/flights/${flightData.icao24}/future-risk?time_horizon=15&time_step_seconds=60`, {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ flight_data: flightData })
         });
         
         if (response.ok) {
@@ -1257,12 +1256,17 @@ async function predictCustomTime() {
     try {
         resultDiv.style.display = 'block';
         resultDiv.innerHTML = '<div style="text-align: center; color: #8b5cf6;">⏳ Predicting...</div>';
+        // Scroll modal to show the prediction area for better UX
+        try { resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
         
         // Fetch prediction for the specific custom time (using 1-minute steps)
         const response = await fetch(`${API_BASE}/api/flights/${flightData.icao24}/future-risk?time_horizon=${customMinutes}&time_step_seconds=60`, {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ flight_data: flightData })
         });
         
         if (response.ok) {
@@ -1294,16 +1298,21 @@ async function predictCustomTime() {
                         </div>
                     </div>
                 `;
+                // Smoothly scroll to the result so the user sees it immediately
+                try { resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
             } else {
                 resultDiv.innerHTML = '<div style="color: #ef4444;">❌ No prediction available</div>';
+                try { resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
             }
         } else {
             const error = await response.json();
             resultDiv.innerHTML = `<div style="color: #ef4444;">❌ ${error.error || 'Prediction failed'}</div>`;
+            try { resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
         }
     } catch (error) {
         console.error('Custom prediction error:', error);
         resultDiv.innerHTML = `<div style="color: #ef4444;">❌ Error: ${error.message}</div>`;
+        try { resultDiv.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
     }
 }
 
@@ -1501,13 +1510,14 @@ function createExplanationModal() {
                 background: rgba(59, 130, 246, 0.1);
                 color: #60a5fa;
                 border: 1px solid rgba(59, 130, 246, 0.3);
-                padding: 6px 12px;
-                border-radius: 6px;
+                padding: 4px 8px;
+                border-radius: 4px;
                 cursor: pointer;
-                font-size: 0.8rem;
+                font-size: 0.7rem;
                 font-weight: 600;
                 transition: all 0.2s ease;
-                margin-right: 6px;
+                display: inline-block;
+                white-space: nowrap;
             }
             .btn-explain:hover {
                 background: rgba(59, 130, 246, 0.2);
@@ -1518,12 +1528,14 @@ function createExplanationModal() {
                 background: rgba(139, 92, 246, 0.1);
                 color: #a78bfa;
                 border: 1px solid rgba(139, 92, 246, 0.3);
-                padding: 6px 12px;
-                border-radius: 6px;
+                padding: 4px 8px;
+                border-radius: 4px;
                 cursor: pointer;
-                font-size: 0.8rem;
+                font-size: 0.7rem;
                 font-weight: 600;
                 transition: all 0.2s ease;
+                display: inline-block;
+                white-space: nowrap;
             }
             .btn-future-risk:hover {
                 background: rgba(139, 92, 246, 0.2);
