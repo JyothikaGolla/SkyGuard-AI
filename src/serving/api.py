@@ -25,7 +25,7 @@ from src.user.routes import user_bp
 from src.admin.routes import admin_bp
 from src.auth.jwt_utils import token_required
 from src.database.models import init_db, AuditLog, SystemMetrics, AnalyticsHistory
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Setup logging first
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +36,7 @@ CORS(app)  # Enable CORS for all routes
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')
+AUDIT_LOG_RETENTION = 100
 
 # Initialize database
 try:
@@ -119,6 +120,22 @@ def log_response(response):
                 period='daily'
             )
             db.add(metric)
+
+        # Keep only the latest 100 audit logs in storage.
+        retained_log_ids = [
+            row[0]
+            for row in db.query(AuditLog.id)
+            .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
+            .limit(AUDIT_LOG_RETENTION)
+            .all()
+        ]
+
+        if retained_log_ids:
+            db.query(AuditLog).filter(~AuditLog.id.in_(retained_log_ids)).delete(synchronize_session=False)
+
+        # Keep only the last 1 day of system metrics to avoid storage bloat.
+        one_day_ago = datetime.utcnow().date() - timedelta(days=1)
+        db.query(SystemMetrics).filter(SystemMetrics.metric_date < one_day_ago).delete(synchronize_session=False)
         
         db.commit()
     except Exception as e:

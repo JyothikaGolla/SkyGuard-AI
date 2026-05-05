@@ -1,6 +1,7 @@
 """
 Database models for user authentication and management.
 """
+import os
 from datetime import datetime
 from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Float, Text, ForeignKey, JSON
 from sqlalchemy.ext.declarative import declarative_base
@@ -264,19 +265,39 @@ engine = None
 SessionLocal = None
 
 
-def init_db(database_url='sqlite:///flight_risk_ai.db'):
+def get_database_url():
+    """Return the configured database URL, defaulting to local SQLite."""
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        return database_url
+
+    if os.environ.get('RENDER') or os.environ.get('RENDER_SERVICE_ID'):
+        raise RuntimeError(
+            'DATABASE_URL must be set on Render to use Postgres and preserve data.'
+        )
+
+    return 'sqlite:///flight_risk_ai.db'
+
+
+def init_db(database_url=None):
     """Initialize database connection and create tables."""
     global engine, SessionLocal
+
+    database_url = database_url or get_database_url()
+
+    engine_kwargs = {
+        'echo': False,
+        'pool_pre_ping': True,
+    }
+
+    if database_url.startswith('sqlite:'):
+        engine_kwargs['connect_args'] = {'check_same_thread': False}
+    else:
+        engine_kwargs['pool_size'] = int(os.environ.get('DB_POOL_SIZE', '10'))
+        engine_kwargs['max_overflow'] = int(os.environ.get('DB_MAX_OVERFLOW', '20'))
+        engine_kwargs['pool_recycle'] = int(os.environ.get('DB_POOL_RECYCLE', '1800'))
     
-    # SQLite-specific settings for better connection handling
-    engine = create_engine(
-        database_url, 
-        echo=False,
-        connect_args={'check_same_thread': False},  # Allow multi-threading
-        pool_pre_ping=True,  # Verify connections before using
-        pool_size=10,  # Increase pool size
-        max_overflow=20  # Allow overflow connections
-    )
+    engine = create_engine(database_url, **engine_kwargs)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     
     # Create all tables

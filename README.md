@@ -272,7 +272,25 @@ python -m http.server 5500
 - **Backend API**: http://localhost:5000
 - **Health Check**: http://localhost:5000/api/health
 
-#### 8️⃣ Optional: Configure Email Alerts
+#### 8️⃣ Move Local Data to Render Postgres
+
+If you want your existing users and saved data to appear on the deployed website, migrate the local SQLite database into Render Postgres before switching the app over.
+
+```bash
+python migrate_sqlite_to_postgres.py --target "your-render-postgres-url"
+```
+
+Then set the Render service's `DATABASE_URL` to that same Postgres URL and redeploy.
+
+What gets carried over:
+- user accounts and login credentials
+- watchlists and alerts
+- analytics history and audit logs
+- preferences and admin metrics
+
+Keep a backup copy of `flight_risk_ai.db` before running the migration.
+
+#### 9️⃣ Optional: Configure Email Alerts
 
 **Get Gmail App Password:**
 1. Enable 2-factor authentication on Gmail
@@ -312,7 +330,7 @@ OPENWEATHER_API_KEY=your_openweather_api_key_here
 JWT_SECRET_KEY=auto_generated_secure_random_key
 
 # Database
-DATABASE_URL=sqlite:///flight_risk_ai.db
+DATABASE_URL=postgresql://user:password@host:5432/database
 
 # Flask
 FLASK_ENV=development

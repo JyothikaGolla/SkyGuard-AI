@@ -16,3 +16,4 @@ pyjwt
 sqlalchemy
 shap
 gunicorn
+psycopg2-binary

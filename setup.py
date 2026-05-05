@@ -64,7 +64,7 @@ def initialize_database():
     try:
         engine, SessionLocal = init_db()
         print("✅ Database initialized successfully!")
-        print(f"   Database file: flight_risk_ai.db")
+        print(f"   Database URL: {engine.url}")
         return engine, SessionLocal
     except Exception as e:
         print(f"❌ Database initialization failed: {e}")

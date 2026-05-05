@@ -12,8 +12,6 @@ services:
         value: production
       - key: FLASK_DEBUG
         value: "False"
-      - key: DATABASE_URL
-        value: sqlite:///flight_risk_ai.db
       - key: CORS_ORIGINS
         value: "*"
       - key: JWT_SECRET_KEY

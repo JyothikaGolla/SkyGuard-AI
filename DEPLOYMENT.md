@@ -23,6 +23,7 @@ If you prefer manual setup, use:
 ## 3) Set required environment variables
 
 In Render service settings, configure:
+- `DATABASE_URL` (paste your Render Postgres connection string)
 - `OPENWEATHER_API_KEY` (required for weather features)
 - `JWT_SECRET_KEY` (auto-generated if using `render.yaml`)
 - `SMTP_USER` and `SMTP_PASSWORD` (optional, for email alerts)
@@ -32,7 +33,17 @@ Optional:
 - `FLASK_ENV=production`
 - `FLASK_DEBUG=False`
 
-## 4) Deploy and verify
+## 4) Migrate existing local data
+
+If you want your current users and saved records to show up on the deployed website, run:
+
+```bash
+python migrate_sqlite_to_postgres.py --target "your-render-postgres-url"
+```
+
+Then set `DATABASE_URL` on Render to the same Postgres URL.
+
+## 5) Deploy and verify
 
 After deployment, open your Render URL:
 - Homepage: `/`
@@ -42,5 +53,5 @@ You should be able to use login/signup and the flight dashboard from the same do
 
 ## Notes
 
-- This setup uses SQLite. On free plans, local disk can be ephemeral.
-- For persistent production data, migrate `DATABASE_URL` to a managed PostgreSQL instance.
+- Local development uses SQLite by default.
+- Render production should use Postgres so your data survives restarts and redeploys.
