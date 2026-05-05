@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask import make_response
 from flask_cors import CORS
 import numpy as np
@@ -33,6 +33,9 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, 'frontend')
 
 # Initialize database
 try:
@@ -1221,6 +1224,29 @@ def get_dynamic_risk_classification(icao24):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/')
+def serve_home():
+    """Serve the frontend home page when deployed as a single web service."""
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
+
+@app.route('/<path:path>')
+def serve_frontend_assets(path):
+    """Serve static frontend assets for non-API routes."""
+    if path.startswith('api/'):
+        return jsonify({'error': 'Not found'}), 404
+
+    asset_path = os.path.join(FRONTEND_DIR, path)
+    if os.path.isfile(asset_path):
+        return send_from_directory(FRONTEND_DIR, path)
+
+    # Fallback to home page for unknown non-API paths.
+    return send_from_directory(FRONTEND_DIR, 'index.html')
+
+
 if __name__ == "__main__":
-    # Run dev server
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # Local dev defaults; hosting providers override PORT.
+    host = os.environ.get('HOST', '127.0.0.1')
+    port = int(os.environ.get('PORT', '5000'))
+    debug = os.environ.get('FLASK_DEBUG', 'True').lower() == 'true'
+    app.run(host=host, port=port, debug=debug)
