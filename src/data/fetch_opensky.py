@@ -1,3 +1,4 @@
+import os
 import requests
 import pandas as pd
 from datetime import datetime
@@ -11,13 +12,18 @@ def fetch_flights(bbox=DEFAULT_BBOX):
     bbox: (min_lat, max_lat, min_lon, max_lon)
     """
     lamin, lamax, lomin, lomax = bbox
+    opensky_username = os.getenv("OPENSKY_USERNAME", "").strip()
+    opensky_password = os.getenv("OPENSKY_PASSWORD", "")
+    auth = (opensky_username, opensky_password) if opensky_username and opensky_password else None
     url = (
         "https://opensky-network.org/api/states/all"
         f"?lamin={lamin}&lamax={lamax}&lomin={lomin}&lomax={lomax}"
     )
 
-    res = requests.get(url, timeout=60)
+    res = requests.get(url, timeout=30, auth=auth)
     if res.status_code != 200:
+        if res.status_code == 401:
+            raise RuntimeError("OpenSky authentication failed. Check OPENSKY_USERNAME and OPENSKY_PASSWORD.")
         raise RuntimeError(f"Error fetching flights: {res.status_code} {res.text}")
 
     payload = res.json()

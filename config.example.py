@@ -9,6 +9,8 @@ DEBUG_MODE = True
 # OpenSky Network Configuration
 DEFAULT_BBOX = (6, 38, 68, 98)  # India: (min_lat, max_lat, min_lon, max_lon)
 OPENSKY_TIMEOUT = 15  # seconds
+# OPENSKY_USERNAME = ""
+# OPENSKY_PASSWORD = ""
 
 # Alternative bounding boxes
 BBOX_USA_EAST = (25, 50, -100, -65)
