@@ -20,7 +20,7 @@ def fetch_flights(bbox=DEFAULT_BBOX):
         f"?lamin={lamin}&lamax={lamax}&lomin={lomin}&lomax={lomax}"
     )
 
-    res = requests.get(url, timeout=30, auth=auth)
+    res = requests.get(url, timeout=60, auth=auth)
     if res.status_code != 200:
         if res.status_code == 401:
             raise RuntimeError("OpenSky authentication failed. Check OPENSKY_USERNAME and OPENSKY_PASSWORD.")
