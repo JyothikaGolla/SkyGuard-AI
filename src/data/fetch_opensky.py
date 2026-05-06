@@ -16,7 +16,7 @@ def fetch_flights(bbox=DEFAULT_BBOX):
         f"?lamin={lamin}&lamax={lamax}&lomin={lomin}&lomax={lomax}"
     )
 
-    res = requests.get(url, timeout=30)
+    res = requests.get(url, timeout=60)
     if res.status_code != 200:
         raise RuntimeError(f"Error fetching flights: {res.status_code} {res.text}")
 
